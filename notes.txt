@@ -1,0 +1,9 @@
+where works before group but order by after grouping so you may have to give all parameters of order by in group by as well.
+alias can't be used in where & group by.
+Aggregates can't be used in where (possible in having), so u must return it from subquery itself or use join. Group by is must to use aggregate with join.
+In join give sub query an alias to access it more than once, use with...as to give alias to subquery to use anywhere later.
+Even after join a, b u can access a.c, b.d.
+In PLSQL, if exists is not allowed, use select...into, exit instead break.
+Cursor for loop does only fetch, it can't be used directly for updating row.
+use left join instead cartesian, avoid brute force join too amap, be careful of null & use distinct in join,
+see ur sql old online solutions. never use between as it can't compare tuples.
