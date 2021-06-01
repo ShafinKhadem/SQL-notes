@@ -47,3 +47,5 @@ use [pgmodeler](https://pgmodeler.io/)
 **don't use uppercase anywhere.**
 
 You may check out pg_ctl and postgres commands
+
+see [notes](notes.txt)

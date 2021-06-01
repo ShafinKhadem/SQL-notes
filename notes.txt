@@ -1,9 +1,34 @@
+use sequences, default, views, constraints, on update/delete cascade whereever possible.
+
 where works before group but order by after grouping so you may have to give all parameters of order by in group by as well.
-alias can't be used in where & group by.
 Aggregates can't be used in where (possible in having), so u must return it from subquery itself or use join. Group by is must to use aggregate with join.
-In join give sub query an alias to access it more than once, use with...as to give alias to subquery to use anywhere later.
+column alias can't be referred to in where & group by as those are executed before select, use with...as for workaround. BUT mysql and postgresql has additional smartness that allows it.
+use left join instead cartesian, avoid brute force join too amap, be careful of null & use distinct (or distinct on) in join,
+In join, use with...as to give alias to subquery to use it more than once anywhere later.
 Even after join a, b u can access a.c, b.d.
-In PLSQL, if exists is not allowed, use select...into, exit instead break.
+select only some columns in join: select  table1.*, table2.col1, table2.col2
+merge some columns in join: coalesce(table1.id, table2.shop_id) in postgresql, similarly nvl in oracle and ifnull in mysql.
+Look for between operator and between symmetric operator.
 Cursor for loop does only fetch, it can't be used directly for updating row.
-use left join instead cartesian, avoid brute force join too amap, be careful of null & use distinct in join,
-see ur sql old online solutions. never use between as it can't compare tuples.
+exit means break in pl[pg]sql.
+
+select...into creates new table in postgresql unlike pl[pg]sql where it stores values into variables, use create...as to create new table in postgresql instead, which is standard (present int oracle/mysql).
+
+is NULL is equilvant to is UNKNOWN in case of boolean.
+Ordinary comparison operators yield null (signifying "unknown"), not true or false, when either input is null. For example, 7 = NULL yields null, as does 7 <> NULL. When this behavior is not suitable, use the IS [ NOT ] DISTINCT FROM constructs:
+a IS DISTINCT FROM b
+a IS NOT DISTINCT FROM b
+
+return inserted/modified rows using returning *
+
+`values` which is used in insert can also be used as a subquery, it basically creates a constant not-in-storage table. It can also be used in join using alias as table_name(column1_name, column2_name, ...).
+
+Subqueries appearing in FROM can be preceded by the key word LATERAL. This allows them to reference columns provided by preceding FROM items. (Without LATERAL, each subquery is evaluated independently and so cannot cross-reference any other FROM item.)
+Table functions appearing in FROM can also be preceded by the key word LATERAL, but for functions the key word is optional; the function's arguments can contain references to columns provided by preceding FROM items in any case.
+A LATERAL item can appear at top level in the FROM list, or within a JOIN tree. In the latter case it can also refer to any items that are on the left-hand side of a JOIN that it is on the right-hand side of.
+
+in postgresql c.name is equivalent to name(c), so be careful of ambiguity in function name!!!
+
+In PLSQL (unlike plpgsql), if exists is not allowed, use select...into there
+
+see ur sql old online solutions for more.
