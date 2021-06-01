@@ -2,13 +2,50 @@ use sequences, default, views, constraints, on update/delete cascade whereever p
 
 where works before group but order by after grouping so you may have to give all parameters of order by in group by as well.
 Aggregates can't be used in where (possible in having), so u must return it from subquery itself or use join. Group by is must to use aggregate with join.
+Aggregates don't support composite type, you need nested group by using something like where (col1, col2) in (subquery). It may be a better idea to use order by instead.
+To keep only one equal row after order by, use distinct on in postgresql. This is not part of standard sql, but it's quite hard to do otherwise.
 column alias can't be referred to in where & group by as those are executed before select, use with...as for workaround. BUT mysql and postgresql has additional smartness that allows it.
-use left join instead cartesian, avoid brute force join too amap, be careful of null & use distinct (or distinct on) in join,
-In join, use with...as to give alias to subquery to use it more than once anywhere later.
+use inner/left join instead of cartesian/cross join as much as possible, be careful of null & use distinct (or distinct on) in join,
+In from, you have to directly give alias to subqueries to join. In other places, use with...as to give alias to subquery to use it more than once anywhere later.
 Even after join a, b u can access a.c, b.d.
 select only some columns in join: select  table1.*, table2.col1, table2.col2
-merge some columns in join: coalesce(table1.id, table2.shop_id) in postgresql, similarly nvl in oracle and ifnull in mysql.
-Look for between operator and between symmetric operator.
+Look for window functions, these need nesting for using where with them (where in the outer nest, window function in the inner nest):
+select * from () q1 WHERE condition doesn't preserve order of q1.
+Get rank (number of people worse than you + 1) in postgresql:
+
+```sql
+select *
+from (
+         select *, rank() over (order by total_score desc)
+         from (
+                  select user_id, sum(score) total_score
+                  from (
+                           select user_id, max(score) score
+                           from challenge_results
+                           group by user_id, challenge_id) q1
+                  group by user_id) q2) q3
+where user_id > 1 order by total_score desc;
+```
+
+
+Get row number in postgresql:
+
+```sql
+select *
+from (
+         select *, row_number() over () rank
+         from (
+                  select user_id, sum(score) total_score
+                  from (
+                           select user_id, max(score) score
+                           from challenge_results
+                           group by user_id, challenge_id) q1
+                  group by user_id
+                  order by total_score desc) q2) q3
+where user_id > 1 order by total_score desc;
+```
+
+Look for between operator and between symmetric operator, greatest, least, coalesce/nvl/ifnull.
 Cursor for loop does only fetch, it can't be used directly for updating row.
 exit means break in pl[pg]sql.
 
@@ -30,5 +67,14 @@ A LATERAL item can appear at top level in the FROM list, or within a JOIN tree. 
 in postgresql c.name is equivalent to name(c), so be careful of ambiguity in function name!!!
 
 In PLSQL (unlike plpgsql), if exists is not allowed, use select...into there
+In postgresql, if you are ready to settle for json, there is a way to select all columns except some (from frontend intercept by [{submissions}]):
+
+```sql
+select jsonb_agg(to_jsonb(q) - 'opponent_id' - 'challenge_id') submissions
+from (select *
+        from challenge_results
+        where challenge_id = ${req.params.problemid}
+        order by time desc) q;
+```
 
 see ur sql old online solutions for more.
