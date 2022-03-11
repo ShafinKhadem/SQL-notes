@@ -1,5 +1,9 @@
 use sequences, default, views, constraints, on update/delete cascade whereever possible.
 
+Whenever you wanna only match column(s) of same name between tables in join, use `USING (common_col1, common_col2)`. USING lets us use common_col1 without mentioning table name unlike ON. Unfortunately ON and USING can't be used together. Never use natural join as it can go wrong when adding new same-name column in both table.
+
+Syntactically, it's mandatory to give alias to every subquery.
+
 where works before group but order by after grouping so you may have to give all parameters of order by in group by as well.
 Aggregates can't be used in where (possible in having), so u must return it from subquery itself or use join. Group by is must to use aggregate with join.
 Aggregates don't support composite type, you need nested group by using something like where (col1, col2) in (subquery). It may be a better idea to use order by instead.
