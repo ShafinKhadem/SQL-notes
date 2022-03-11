@@ -9,6 +9,20 @@ use inner/left join instead of cartesian/cross join as much as possible, be care
 In from, you have to directly give alias to subqueries to join. In other places, use with...as to give alias to subquery to use it more than once anywhere later.
 Even after join a, b u can access a.c, b.d.
 select only some columns in join: select  table1.*, table2.col1, table2.col2
+
+It's possible to use aggregate in order by without using alias.
+sql has case statement whereas mysql has if(condition, true-value, false-value). postgresql case statement example:
+
+```sql
+SELECT field1, field2,
+  CASE
+    WHEN field1>0 THEN field2/field1
+    ELSE 0
+  END 
+  AS field3
+FROM test
+```
+
 Look for window functions, these need nesting for using where with them (where in the outer nest, window function in the inner nest):
 select * from () q1 WHERE condition doesn't preserve order of q1.
 Get rank (number of people worse than you + 1) in postgresql:
