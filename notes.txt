@@ -4,9 +4,9 @@ where works before group but order by after grouping so you may have to give all
 Aggregates can't be used in where (possible in having), so u must return it from subquery itself or use join. Group by is must to use aggregate with join.
 Aggregates don't support composite type, you need nested group by using something like where (col1, col2) in (subquery). It may be a better idea to use order by instead.
 To keep only one equal row after order by, use distinct on in postgresql. This is not part of standard sql, but it's quite hard to do otherwise.
-column alias can't be referred to in where & group by as those are executed before select, use with...as for workaround. BUT mysql and postgresql has additional smartness that allows it.
+column alias can't be referred to in where & group by as those are executed before select, use `with alias as (query)` for workaround. BUT mysql and postgresql has additional smartness that allows it.
 use inner/left join instead of cartesian/cross join as much as possible, be careful of null & use distinct (or distinct on) in join,
-In from, you have to directly give alias to subqueries to join. In other places, use with...as to give alias to subquery to use it more than once anywhere later.
+In from, you have to directly give alias to subqueries to join. In other places, use `with alias as (query)` to give alias to subquery to use it more than once anywhere later.
 Even after join a, b u can access a.c, b.d.
 select only some columns in join: select  table1.*, table2.col1, table2.col2
 
