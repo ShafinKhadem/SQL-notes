@@ -70,9 +70,11 @@ exit means break in pl[pg]sql.
 select...into creates new table in postgresql unlike pl[pg]sql where it stores values into variables, use create...as to create new table in postgresql instead, which is standard (present int oracle/mysql).
 
 is NULL is equilvant to is UNKNOWN in case of boolean.
-Ordinary comparison operators yield null (signifying "unknown"), not true or false, when either input is null. For example, 7 = NULL yields null, as does 7 <> NULL. When this behavior is not suitable, use the IS [ NOT ] DISTINCT FROM constructs:
+Ordinary comparison operators yield null (signifying "unknown"), not true or false, when either input is null. For example, 7 = NULL yields null, as does 7 <> NULL. When this behavior is not suitable, use the IS [ NOT ] DISTINCT FROM constructs which assumes null to be equal to null and different from non-null:
 a IS DISTINCT FROM b
 a IS NOT DISTINCT FROM b
+
+4th minimum salary: `select salary from employees order by salary skip 3 limit 1;`
 
 return inserted/modified rows using returning *
 
