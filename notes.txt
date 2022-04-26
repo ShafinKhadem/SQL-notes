@@ -13,7 +13,7 @@ To keep only one equal row after order by, use distinct on in postgresql. This i
 column alias can't be referred to in where & group by as those are executed before select, use `with alias as (query)` for workaround. BUT mysql and postgresql has additional smartness that allows it.
 use inner/left join instead of cartesian/cross join as much as possible, be careful of null & use distinct (or distinct on) in join,
 In from, you have to directly give alias to subqueries to join. In other places, use `with alias as (query)` to give alias to subquery to use it more than once anywhere later.
-Even after join a, b u can access a.c, b.d.
+Even after join a, b u can access a.c, b.d. Where works after join and group by.
 select only some columns in join: select  table1.*, table2.col1, table2.col2
 
 It's possible to use aggregate in order by without using alias.
