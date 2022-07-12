@@ -4,7 +4,28 @@ Find 10th minimum : order by x offset 9 limit 1;
 
 Whenever you wanna only match column(s) of same name between tables in join, use `USING (common_col1, common_col2)`. USING lets us use common_col1 without mentioning table name unlike ON. Unfortunately ON and USING can't be used together. Never use natural join as it can go wrong when adding new same-name column in both table.
 
-Syntactically, it's mandatory to give alias to every subquery.
+Syntactically, it's mandatory to give alias to every subquery. `VALUES (), (), ... as ..` can be used as constant tables for bulk queries, which is specially useful for bulk update:
+
+```python
+def update_df_rows_in_db(df: pd.DataFrame, table_name: str) -> None:
+    """Update dataframe's rows and columns in DB table using dataframe's index as key"""
+    key = df.index.name
+    update_cols = ",".join(list(df.columns))
+
+    sql = f"""
+    UPDATE {table_name}
+    SET ({update_cols}) = ({",".join(["update_payload." + col for col in df.columns])})
+    FROM (VALUES %s) AS update_payload({key}, {update_cols})
+    WHERE {table_name}.{key} = update_payload.{key};
+    """
+
+    tuples = [
+        key + update_cols for key, update_cols in zip([(x,) for x in df.index], [tuple(x) for x in df.to_numpy()])
+    ]
+    conn = get_db_connection_instance()
+    with conn.cursor() as cursor:
+        psycopg2.extras.execute_values(cursor, sql, tuples)
+```
 
 where works before group but order by after grouping so you may have to give all parameters of order by in group by as well.
 Aggregates can't be used in where (possible in having), so u must return it from subquery itself or use join. Group by is must to use aggregate with join.
