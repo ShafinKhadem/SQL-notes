@@ -87,29 +87,41 @@ volumes:
 A Makefile for postgres with above docker & .env:
 
 ```make
-export	# export all variables by default
-include .env	# To override these variables, use make variable=value target
+SHELL := /bin/bash
+include .env	# use `make variable=value target` to replace values in .env or any variable in Makefile
+# Because of different treatment of quotes by shell (.env) and make, there is no easy way to export
+# .env variables from Makefile: https://stackoverflow.com/a/44637188. Verify by adding a `export` here & `make test`.
 
 echo_env:
 	env
+
+# https://www.gnu.org/software/make/manual/make.html#Call-Function
+# Can't use := here - https://stackoverflow.com/a/6283363
+confirm = read -r -p "⚠  Are you sure? [y/N] " response && [[ "$$response" =~ ^([yY][eE][sS]|[yY])$$ ]]
 
 setup_db:
 	docker-compose up -d --no-recreate postgres
 
 reset_db:
-	docker exec postgres bash -c "PGPASSWORD=$(DB_PASS) dropdb -h postgres -p 5432 -U $(DB_USER) $(DB_NAME)"
-	docker exec postgres bash -c "PGPASSWORD=$(DB_PASS) createdb -h postgres -p 5432 -U $(DB_USER) $(DB_NAME)"
+	@if $(call confirm); then \
+		docker exec postgres bash -c "PGPASSWORD=$(DB_PASS) dropdb -h postgres -p 5432 -U $(DB_USER) $(DB_NAME)" ; \
+		docker exec postgres bash -c "PGPASSWORD=$(DB_PASS) createdb -h postgres -p 5432 -U $(DB_USER) $(DB_NAME)" ; \
+	fi
 
 show_db:
 	docker exec postgres bash -c "PGPASSWORD=$(DB_PASS) psql -h postgres -p 5432 -U $(DB_USER) $(DB_NAME) -c \
-	'select avg(abs(time_to_fix-time_to_fix_master)), percent_rank(1.1) within group (order by abs(time_to_fix-time_to_fix_master)) \
+	'select issue_id, issue_key, board_id, time_to_fix \
 	from resolution_events \
-	join \
-	(select issue_id, sum(time_to_fix) as time_to_fix_master \
-	from resolution_events_master \
-	group by issue_id) \
-	as resolution_events_master \
-	using (issue_id);'"
+	where board_id = '\''$(BOARD_ID)'\'';'"
+
+delete_board:
+	@echo -n "This action will delete all data for board $(BOARD_ID). "
+	@if $(call confirm); then \
+		docker exec postgres bash -c "PGPASSWORD=$(DB_PASS) psql -h postgres -p 5432 -U $(DB_USER) $(DB_NAME) -c \
+		'delete from resolution_events \
+		where board_id = '\''$(BOARD_ID)'\'';'" ; \
+	fi
+	@echo "Deleted all data for board $(BOARD_ID)"
 
 backup_db:
 	PGPASSWORD=$(DB_PASS) pg_dump -h localhost -p 5432 -U $(DB_USER) -d $(DB_NAME) -f ~/dump_$$(date -Iseconds).sql
