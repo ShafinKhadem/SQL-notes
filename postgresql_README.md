@@ -134,7 +134,7 @@ backup_db:
 	docker exec postgres bash -c "PGPASSWORD=$(DB_PASS) pg_dump -h postgres -p 5432 -U $(DB_USER) -d $(DB_NAME) -f /tmp/dump_$(timestamp).sql"
 	docker cp postgres:/tmp/dump_$(timestamp).sql ~
 
-restore_db:
+restore_db: reset_db
 	docker cp ~/dump.sql postgres:/tmp/dump.sql
 	docker exec postgres bash -c "PGPASSWORD=$(DB_PASS) psql -h localhost -p 5432 -U $(DB_USER) -d $(DB_NAME) -f /tmp/dump.sql"
 ```
