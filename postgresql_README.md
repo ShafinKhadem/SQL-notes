@@ -95,6 +95,9 @@ include .env	# use `make variable=value target` to replace values in .env or any
 echo_env:
 	env
 
+# variable := $$(command) executes that command each time the variable is used
+timestamp := $(shell date -Iseconds)
+
 # https://www.gnu.org/software/make/manual/make.html#Call-Function
 # Can't use := here - https://stackoverflow.com/a/6283363
 confirm = read -r -p "⚠  Are you sure? [y/N] " response && [[ "$$response" =~ ^([yY][eE][sS]|[yY])$$ ]]
@@ -123,9 +126,15 @@ delete_board:
 	fi
 	@echo "Deleted all data for board $(BOARD_ID)"
 
-backup_db:
-	PGPASSWORD=$(DB_PASS) pg_dump -h localhost -p 5432 -U $(DB_USER) -d $(DB_NAME) -f ~/dump_$$(date -Iseconds).sql
+fetch_boards:
+	# comment out plotting from main.py first
+	for id in '719' '509' '543' '546'; do BOARD_ID=$$id poetry run python main.py; done
 
-restore_db: reset_db
-	PGPASSWORD=$(DB_PASS) psql -h localhost -p 5432 -U $(DB_USER) -d $(DB_NAME) -f ~/dump.sql
+backup_db:
+	docker exec postgres bash -c "PGPASSWORD=$(DB_PASS) pg_dump -h postgres -p 5432 -U $(DB_USER) -d $(DB_NAME) -f /tmp/dump_$(timestamp).sql"
+	docker cp postgres:/tmp/dump_$(timestamp).sql ~
+
+restore_db:
+	docker cp ~/dump.sql postgres:/tmp/dump.sql
+	docker exec postgres bash -c "PGPASSWORD=$(DB_PASS) psql -h localhost -p 5432 -U $(DB_USER) -d $(DB_NAME) -f /tmp/dump.sql"
 ```
